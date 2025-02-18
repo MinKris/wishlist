@@ -76,7 +76,7 @@
         <h2 id="userName">Вишлист</h2>
         <div id="items"></div>
         <input type="text" id="inputItem" placeholder="Добавьте желание">
-        <button onclick="addItem()">Добавить</button>
+        <button id="addButton">Добавить</button>
         <button onclick="location.href='index.html'">На главное меню</button>
     </div>
 
@@ -117,7 +117,7 @@
             });
         }
 
-        function addItem() {
+        window.addItem = function() {
             const input = document.getElementById('inputItem');
             const value = input.value.trim();
             if (value !== '') {
@@ -125,7 +125,7 @@
                 push(itemsRef, value); // Добавление элемента в базу данных
                 input.value = ''; // Очищаем поле ввода
             }
-        }
+        };
 
         function addItemToDOM(value, key) {
             const itemsDiv = document.getElementById('items');
