@@ -80,9 +80,12 @@
         <button onclick="location.href='index.html'">На главное меню</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-    <script>
+    <script type="module">
+        // Импортируйте функции из SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        // Ваша конфигурация Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDGOojcYpS2pjGZTEMwIeMjqvyz3HK42Ec",
             authDomain: "wishlist-edaa6.firebaseapp.com",
@@ -93,8 +96,9 @@
             appId: "1:754562531923:web:1345a5c9009d5f79233ca6"
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Инициализация Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const user = urlParams.get('user');
@@ -102,8 +106,8 @@
         document.getElementById('userName').textContent = `Вишлист ${userName}`;
 
         function loadItems() {
-            const itemsRef = database.ref(user);
-            itemsRef.on('value', (snapshot) => {
+            const itemsRef = ref(database, user);
+            onValue(itemsRef, (snapshot) => {
                 const items = snapshot.val() || {};
                 document.getElementById('items').innerHTML = ''; // Очищаем текущий список
 
@@ -117,9 +121,9 @@
             const input = document.getElementById('inputItem');
             const value = input.value.trim();
             if (value !== '') {
-                const itemsRef = database.ref(user);
-                itemsRef.push(value);
-                input.value = '';
+                const itemsRef = ref(database, user);
+                itemsRef.push(value); // Добавление элемента в базу данных
+                input.value = ''; // Очищаем поле ввода
             }
         }
 
@@ -148,19 +152,19 @@
         }
 
         function removeItem(key) {
-            const itemsRef = database.ref(user + '/' + key);
-            itemsRef.remove();
+            const itemsRef = ref(database, `${user}/${key}`);
+            itemsRef.remove(); // Удаление элемента из базы данных
         }
 
         function editItem(key, itemText) {
             const newValue = prompt("Редактируйте пункт:", itemText.textContent);
             if (newValue && newValue.trim() !== '') {
-                const itemsRef = database.ref(user + '/' + key);
-                itemsRef.set(newValue);
+                const itemsRef = ref(database, `${user}/${key}`);
+                itemsRef.set(newValue); // Обновление элемента в базе данных
             }
         }
 
-        window.onload = loadItems;
+        window.onload = loadItems; // Загружаем элементы при загрузке страницы
     </script>
 </body>
 </html>
