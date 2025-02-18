@@ -80,27 +80,50 @@
         <button onclick="location.href='index.html'">На главное меню</button>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGOojcYpS2pjGZTEMwIeMjqvyz3HK42Ec",
+            authDomain: "wishlist-edaa6.firebaseapp.com",
+            databaseURL: "https://wishlist-edaa6-default-rtdb.firebaseio.com",
+            projectId: "wishlist-edaa6",
+            storageBucket: "wishlist-edaa6.firebasestorage.app",
+            messagingSenderId: "754562531923",
+            appId: "1:754562531923:web:1345a5c9009d5f79233ca6"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const urlParams = new URLSearchParams(window.location.search);
         const user = urlParams.get('user');
         const userName = user === 'kseniya' ? 'Ксенюшка' : 'Маришечка';
         document.getElementById('userName').textContent = `Вишлист ${userName}`;
 
         function loadItems() {
-            const items = JSON.parse(localStorage.getItem(user)) || [];
-            items.forEach(item => addItemToDOM(item));
+            const itemsRef = database.ref(user);
+            itemsRef.on('value', (snapshot) => {
+                const items = snapshot.val() || {};
+                document.getElementById('items').innerHTML = ''; // Очищаем текущий список
+
+                for (const key in items) {
+                    addItemToDOM(items[key], key);
+                }
+            });
         }
 
         function addItem() {
             const input = document.getElementById('inputItem');
-            if (input.value.trim() !== '') {
-                addItemToDOM(input.value);
-                saveItem(input.value);
+            const value = input.value.trim();
+            if (value !== '') {
+                const itemsRef = database.ref(user);
+                itemsRef.push(value);
                 input.value = '';
             }
         }
 
-        function addItemToDOM(value) {
+        function addItemToDOM(value, key) {
             const itemsDiv = document.getElementById('items');
             const itemDiv = document.createElement('div');
             itemDiv.className = 'item';
@@ -109,14 +132,14 @@
             checkbox.type = 'checkbox';
             checkbox.className = 'checkbox';
             checkbox.onclick = function() {
-                removeItem(value);
+                removeItem(key);
                 itemDiv.remove();
             };
 
             const itemText = document.createElement('span');
             itemText.textContent = value;
             itemText.onclick = function() {
-                editItem(value, itemText);
+                editItem(key, itemText);
             };
 
             itemDiv.appendChild(checkbox);
@@ -124,24 +147,16 @@
             itemsDiv.appendChild(itemDiv);
         }
 
-        function saveItem(value) {
-            const items = JSON.parse(localStorage.getItem(user)) || [];
-            items.push(value);
-            localStorage.setItem(user, JSON.stringify(items));
+        function removeItem(key) {
+            const itemsRef = database.ref(user + '/' + key);
+            itemsRef.remove();
         }
 
-        function removeItem(value) {
-            let items = JSON.parse(localStorage.getItem(user)) || [];
-            items = items.filter(item => item !== value);
-            localStorage.setItem(user, JSON.stringify(items));
-        }
-
-        function editItem(oldValue, itemText) {
-            const newValue = prompt("Редактируйте пункт:", oldValue);
+        function editItem(key, itemText) {
+            const newValue = prompt("Редактируйте пункт:", itemText.textContent);
             if (newValue && newValue.trim() !== '') {
-                itemText.textContent = newValue;
-                removeItem(oldValue);
-                saveItem(newValue);
+                const itemsRef = database.ref(user + '/' + key);
+                itemsRef.set(newValue);
             }
         }
 
