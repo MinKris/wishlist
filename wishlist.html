@@ -106,26 +106,31 @@
         document.getElementById('userName').textContent = `Вишлист ${userName}`;
 
         function loadItems() {
-            const itemsRef = ref(database, user);
-            onValue(itemsRef, (snapshot) => {
-                const items = snapshot.val() || {};
-                document.getElementById('items').innerHTML = ''; // Очищаем текущий список
+    const itemsRef = ref(database, user);
+    onValue(itemsRef, (snapshot) => {
+        const items = snapshot.val() || {};
+        document.getElementById('items').innerHTML = ''; // Очищаем текущий список
 
-                for (const key in items) {
-                    addItemToDOM(items[key], key);
-                }
-            });
+        for (const key in items) {
+            addItemToDOM(items[key], key);
         }
+    });
+}
 
-        window.addItem = function() {
-            const input = document.getElementById('inputItem');
-            const value = input.value.trim();
-            if (value !== '') {
-                const itemsRef = ref(database, user);
-                push(itemsRef, value); // Добавление элемента в базу данных
+window.addItem = function() {
+    const input = document.getElementById('inputItem');
+    const value = input.value.trim();
+    if (value !== '') {
+        const itemsRef = ref(database, user);
+        push(itemsRef, value) // Добавление элемента в базу данных
+            .then(() => {
                 input.value = ''; // Очищаем поле ввода
-            }
-        };
+            })
+            .catch((error) => {
+                console.error("Ошибка при добавлении элемента: ", error);
+            });
+    }
+};
 
         function addItemToDOM(value, key) {
             const itemsDiv = document.getElementById('items');
